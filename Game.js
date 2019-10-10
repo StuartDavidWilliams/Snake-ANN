@@ -1,7 +1,7 @@
 class snakeGame{
     constructor(x,y){
         this.movement = new createVector(1,0)
-        this.time=100
+        this.time=200
         this.alive = true
         this.position = [[],[]]
         this.windowPosition = new createVector(x,y)
@@ -40,7 +40,7 @@ class snakeGame{
         return(returnList)
     }
     start(){
-        this.time =100
+        this.time =200
         this.movement.x = 1
         this.movement.y = 0
         this.alive = true
@@ -78,7 +78,7 @@ class snakeGame{
         }
         if(this.position[0][this.position[0].length-1]==this.point.x && this.position[1][this.position[1].length-1]==this.point.y){
             this.points +=1
-            this.time=100
+            this.time=200
             this.randomPoint()
         }else{
             this.position[0].shift()
