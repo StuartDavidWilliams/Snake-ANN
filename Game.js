@@ -1,11 +1,12 @@
 class snakeGame{
     constructor(x,y){
         this.movement = new createVector(1,0)
-        this.time=200
+        this.time=100
+        this.scale = Math.floor(Math.floor(width/10)/39)
         this.alive = true
         this.position = [[],[]]
         this.windowPosition = new createVector(x,y)
-        this.points = 0
+        this.points = 1
         this.point =new createVector(1,1)
     }
     getInputs(){
@@ -40,34 +41,31 @@ class snakeGame{
         return(returnList)
     }
     start(){
-        this.time =200
+        this.time =100
         this.movement.x = 1
         this.movement.y = 0
         this.alive = true
         this.position = [[],[]]
         this.position[0].push(20)
         this.position[1].push(20)
-        this.points =0
+        this.points =1
         this.randomPoint()
     }
     randomPoint(){
-        this.point.x=Math.round(Math.random()*35)+3
-        this.point.y=Math.round(Math.random()*35)+3
+        this.point.x=Math.round(Math.random()*37)+1
+        this.point.y=Math.round(Math.random()*37)+1
     }
-    show(scale,best){
+    show(best){
+        let tempscale = this.scale
+        if(best==0){tempscale=Math.floor((width-40)*2/7)/38}
         fill(color(522,522,522))
-        if(this.alive==false){
-            fill(color(522,0,0))
-        }
-        rect(scale+(this.windowPosition.x*best),scale+(this.windowPosition.y*best),scale*38,scale*38)
-                for(let ii = 0; ii < this.position[0].length;ii++){
-            rect((this.windowPosition.x*best)+(scale*this.position[0][ii]),(this.windowPosition.y*best)+(scale*this.position[1][ii]),scale,scale)
+        if(this.alive==false){fill(color(522,0,0))}
+        rect(10+(this.windowPosition.x*best),10+(this.windowPosition.y*best),tempscale*38,tempscale*38)
+        for(let ii = 0; ii < this.position[0].length;ii++){
+            rect(10+(this.windowPosition.x*best)+(tempscale*(this.position[0][ii]-1)),10+(this.windowPosition.y*best)+(tempscale*(this.position[1][ii]-1)),tempscale,tempscale)
         }
         fill(color(522,0,0))
-        rect((this.windowPosition.x*best)+(this.point.x*scale),(this.windowPosition.y*best)+(this.point.y*scale),scale,scale)
-        if(best == 0){
-            this.show(3,1)
-        }
+        rect(10+(this.windowPosition.x*best)+((this.point.x-1)*tempscale),10+(this.windowPosition.y*best)+((this.point.y-1)*tempscale),tempscale,tempscale)
     }
     move(){
         this.time-=1
@@ -78,7 +76,7 @@ class snakeGame{
         }
         if(this.position[0][this.position[0].length-1]==this.point.x && this.position[1][this.position[1].length-1]==this.point.y){
             this.points +=1
-            this.time=200
+            this.time=100
             this.randomPoint()
         }else{
             this.position[0].shift()
