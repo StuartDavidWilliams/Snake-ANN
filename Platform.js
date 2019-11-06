@@ -40,7 +40,9 @@ let amount = 200
 let box = amount
 let grapher = new graph()
 function setup() {
-    createCanvas(screen.width-30, ((screen.width)*2/7) + ((screen.width)*amount/100));
+    let tempwidth = screen.width
+    if(screen.width<1366){tempwidth=1366}
+    createCanvas(tempwidth-30, ((tempwidth)*2/7) + ((tempwidth)*amount/100));
     background(0)
     let button
     button = createButton("Follow best")
