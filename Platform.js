@@ -149,6 +149,14 @@ function showNet(net){
             ellipse(20+Math.floor((width-40)*2/7)+((i+1)*(Math.floor((width-40)*2/7)/5)),(10+((k+1)*Math.floor((width-40)*2/7)/(NNs[net].layers[i].length+1))),15)
         }
     }
+    fill(color(0,0,0))
+    text("Front",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*2/7)/5)))
+    text("Left",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*4/7)/5)))
+    text("Right",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*6/7)/5)))
+    text("Angle",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*8/7)/5)))
+    text("Forward",40+Math.floor((width-40)*2/7)+(4*(Math.floor((width-40)*2/7)/5)),(10+(Math.floor((width-40)*2/7)/4)))
+    text("Right",40+Math.floor((width-40)*2/7)+(4*(Math.floor((width-40)*2/7)/5)),(10+(Math.floor((width-40)*4/7)/4)))
+    text("Left",40+Math.floor((width-40)*2/7)+(4*(Math.floor((width-40)*2/7)/5)),(10+(Math.floor((width-40)*6/7)/4)))
 }
 
 function qsort(list){
