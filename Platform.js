@@ -1,22 +1,66 @@
+class graph{ 
+    constructor(){
+      this.bestList=[]
+      this.bestSoFar = 1
+    }
+  show(best){
+      this.bestList.push(best)
+      if(best>this.bestSoFar){this.bestSoFar=best}
+      this.makeGraph()
+      noFill()
+      beginShape()
+      for(let i =0;i<this.bestList.length;i++){
+          vertex(70+2*Math.floor((width-40)*2/7)+((i)*Math.floor((width-40)*12/31)/(this.bestList.length-1)),Math.floor((width-40)*2/7)-20-((this.bestList[i]*Math.floor(width-40)*7/31)/(this.bestSoFar)))
+      }
+      endShape()
+  }
+  makeGraph(){
+    fill(color(522,522,522))
+    rect(30+2*Math.floor((width-40)*2/7),10,Math.floor((width-40)*3/7),Math.floor((width-40)*2/7))
+    noFill()
+    beginShape()
+    vertex(70+2*Math.floor((width-40)*2/7), 10)
+    vertex(70+2*Math.floor((width-40)*2/7), Math.floor((width-40)*2/7)-20)
+    vertex(width, Math.floor((width-40)*2/7)-20)
+    endShape()
+    fill(color(0,0,0))
+    text("Generations", 70+2*Math.floor((width-40)*2/7)+Math.floor((width-40)*6/31),Math.floor((width-40)*2/7))
+    text(this.bestSoFar, 45+2*Math.floor((width-40)*2/7),Math.floor((width-40)*2/7)-20-Math.floor(width-40)*7/31)
+    text(this.bestList.length, 65+2*Math.floor((width-40)*2/7)+Math.floor((width-40)*12/31),Math.floor((width-40)*2/7))
+    push()
+    translate(65+2*Math.floor((width-40)*2/7),Math.floor((width-40)/7)-20)
+    rotate(Math.PI*3/2)
+    text("Points", 0,0)
+    pop()
+  }
+}
 let games = []
 let NNs = []
 let amount = 200
-let box = 0
-let bestList=[]
-let followBest = true
+let box = amount
+let grapher = new graph()
 function setup() {
-    createCanvas(1330, 2800);
-    for(let yCounter = 0;yCounter<20;yCounter++){
+    createCanvas(screen.width-30, ((screen.width)*2/7) + ((screen.width)*amount/100));
+    background(0)
+    let button
+    button = createButton("Follow best")
+    button.position(10, (width*2/7)+25)
+    button.mousePressed(followBestClick)
+    grapher.makeGraph()
+    for(let yCounter = 0;yCounter<amount/10;yCounter++){
         for(let hCounter =0;hCounter<10;hCounter++){
-            games.push(new snakeGame(60+(hCounter*120),(yCounter*120)+400))
+            games.push(new snakeGame(hCounter*width/10,50+(yCounter*width/10)+(width*2/7)))
             NNs.push(new neuralNetwork())
             games[hCounter+(yCounter*10)].start()
         }
     }
 }
+function followBestClick(){box=amount}
 function draw() {
-    background(0)
     frameRate(20)
+    fill(color(0,0,0))
+    rect(0,0,30+2*Math.floor((width-40)*2/7),Math.floor((width)*2/7))
+    rect(0,Math.floor((width)*2/7),width,height)
     let check = true
     for(let counter = 0;counter<amount;counter++){
         if(games[counter].alive){
@@ -27,7 +71,7 @@ function draw() {
         
     }
     if(check==true){
-    bestList.push(games[best()].points)
+    grapher.show(games[best()].points)
         let list = []
         for(let counter = 0;counter<amount;counter++){
             list.push(counter)
@@ -47,18 +91,17 @@ function draw() {
           games[g].start()
         }
     }
-    if(followBest){
+    if(box==amount){
         let bestNet =best()
-        games[bestNet].show(10,0)
+        games[bestNet].show(0)
         showNet(bestNet)
     }else{
-        games[box].show(10,0)
+        games[box].show(0)
         showNet(box)
     }
     for(let gg = 0;gg<amount;gg++){
-            games[gg].show(3,1)
+            games[gg].show(1)
     }
-    graph()
 }
 function best(){
     let returnBest =0
@@ -83,43 +126,25 @@ function breed(mum,dad){
     }
     return(temp)
 }
-function graph(){
-    fill(color(522,522,522))
-    rect(790,10,530,380)
-    noFill();
-    beginShape();
-    vertex(810, 10);
-    vertex(810, 370);
-    vertex(1320, 370);
-    endShape();
-    beginShape();
-    for(let i =0;i<bestList.length;i++){
-        vertex(810+((i)*530/bestList.length),370-(bestList[i]*10))
-    }
-    endShape()
-}
 function mouseClicked(){
-    window.scrollTo(0, 0)
-    followBest=false
-    box = Math.floor((mouseX-60)/120)+(Math.floor((mouseY-400)/120)*10)
-    if(box<0||box>299){
-        followBest=true
+    let tempbox = Math.floor((mouseX-10)*10/width)+10*Math.floor((mouseY-(width*2/7)-60)*10/width)
+    if(tempbox>=0 && tempbox<=amount){
+        window.scrollTo(0, 0)
+        box = tempbox
     }
 }
 function showNet(net){
     fill(color(522,522,522))
-    rect(400,10,380,380)
-    if(net!=300){
+    rect(20+Math.floor((width-40)*2/7),10,Math.floor((width-40)*2/7),Math.floor((width-40)*2/7))
     for(let i = 0;i<4;i++){
         for(let k = 0;k<NNs[net].layers[i].length;k++){
             if(i!=3){
                 for(let h =0; h<NNs[net].layers[i][k].weights[0].length;h++){
-                   line(400+((i+1)*(380/5)),(10+((k+1)*380/(NNs[net].layers[i].length+1))),400+((i+2)*(380/5)),(10+((h+1)*380/(NNs[net].layers[i+1].length+1))))
+                   line((20+Math.floor((width-40)*2/7))+((i+1)*(Math.floor((width-40)*2/7)/5)),(10+((k+1)*Math.floor((width-40)*2/7)/(NNs[net].layers[i].length+1))),(20+Math.floor((width-40)*2/7))+((i+2)*(Math.floor((width-40)*2/7)/5)),(10+((h+1)*Math.floor((width-40)*2/7)/(NNs[net].layers[i+1].length+1))))
                }
             }
             fill(color((522*(NNs[net].layers[i][k].input)),0,(522*-(NNs[net].layers[i][k].input))))
-            ellipse(400+((i+1)*(380/5)),(10+((k+1)*380/(NNs[net].layers[i].length+1))),15)
-            }
+            ellipse(20+Math.floor((width-40)*2/7)+((i+1)*(Math.floor((width-40)*2/7)/5)),(10+((k+1)*Math.floor((width-40)*2/7)/(NNs[net].layers[i].length+1))),15)
         }
     }
 }
@@ -140,3 +165,4 @@ function qsort(list){
     }
     return(((qsort(bigger)).concat(pivot)).concat(qsort(smaller)))
   }
+  
