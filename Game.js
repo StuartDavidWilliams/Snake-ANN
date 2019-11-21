@@ -2,7 +2,7 @@ class snakeGame{
     constructor(x,y){
         this.movement
         this.time=100
-        this.colour = 552
+        this.colour = 0
         this.scale = Math.floor(Math.floor(width/10)/39)
         this.alive
         this.position
@@ -43,7 +43,7 @@ class snakeGame{
         this.alive = true
         this.position = [[20],[20]]
         this.points =1
-        this.point =new createVector(10,10)
+                this.point =new createVector(10,10)
         this.randomPoint()
     }
     randomPoint(){
@@ -53,12 +53,16 @@ class snakeGame{
     show(best){
         let tempscale = this.scale
         if(best==0){tempscale=Math.floor((width-40)*2/7)/38}
-        fill(color(255,255,this.colour))
+        fill(color(255,255,255))
         if(this.alive==false){
-            fill(color(255,Math.round((255-this.colour)/2.5),0))
+            fill(color(255,0,0))
         }
+        push()
+        stroke(color(this.colour,this.colour,0))
         rect(10+(this.windowPosition.x*best),10+(this.windowPosition.y*best),tempscale*38,tempscale*38)
+        pop()
         for(let ii = 0; ii < this.position[0].length;ii++){
+            fill(color(this.colour,255,0,(255*(ii+2)/this.position[0].length+1)))
             rect(10+(this.windowPosition.x*best)+(tempscale*(this.position[0][ii]-1)),10+(this.windowPosition.y*best)+(tempscale*(this.position[1][ii]-1)),tempscale,tempscale)
         }
         fill(color(255,0,0))
@@ -103,4 +107,3 @@ class snakeGame{
         }
     }
 }
-
