@@ -1,68 +1,48 @@
-class graph{ 
-    constructor(){
-      this.bestList=[]
-      this.bestSoFar = 1
-    }
-  show(best){
-      this.bestList.push(best)
-      if(best>this.bestSoFar){this.bestSoFar=best}
-      this.makeGraph()
-      noFill()
-      beginShape()
-      for(let i =0;i<this.bestList.length;i++){
-          vertex(70+2*Math.floor((width-40)*2/7)+((i)*Math.floor((width-40)*12/31)/(this.bestList.length-1)),Math.floor((width-40)*2/7)-20-((this.bestList[i]*Math.floor(width-40)*7/31)/(this.bestSoFar)))
-      }
-      endShape()
-  }
-  makeGraph(){
-    fill(color(522,522,522))
-    rect(30+2*Math.floor((width-40)*2/7),10,Math.floor((width-40)*3/7),Math.floor((width-40)*2/7))
-    noFill()
-    beginShape()
-    vertex(70+2*Math.floor((width-40)*2/7), 10)
-    vertex(70+2*Math.floor((width-40)*2/7), Math.floor((width-40)*2/7)-20)
-    vertex(width, Math.floor((width-40)*2/7)-20)
-    endShape()
-    fill(color(0,0,0))
-    text("Generations", 70+2*Math.floor((width-40)*2/7)+Math.floor((width-40)*6/31),Math.floor((width-40)*2/7))
-    text(this.bestSoFar, 45+2*Math.floor((width-40)*2/7),Math.floor((width-40)*2/7)-20-Math.floor(width-40)*7/31)
-    text(this.bestList.length, 65+2*Math.floor((width-40)*2/7)+Math.floor((width-40)*12/31),Math.floor((width-40)*2/7))
-    push()
-    translate(65+2*Math.floor((width-40)*2/7),Math.floor((width-40)/7)-20)
-    rotate(Math.PI*3/2)
-    text("Points", 0,0)
-    pop()
-  }
-}
 let games = []
 let NNs = []
-let amount = 200
+let amount = 300
 let box = amount
-let grapher = new graph()
-function setup() {
-    let tempwidth = screen.width
-    if(screen.width<1366){tempwidth=1366}
-    createCanvas(tempwidth-30, ((tempwidth)*2/7) + ((tempwidth)*amount/100));
-    background(0)
-    let button
-    button = createButton("Follow best")
-    button.position(10, (width*2/7)+25)
-    button.mousePressed(followBestClick)
-    grapher.makeGraph()
+let grapher
+function setup(){
+    makeScreen()
+    setButton()
+    createSnakes()
+    startSnakes()
+}
+//
+function createSnakes(){
     for(let yCounter = 0;yCounter<amount/10;yCounter++){
         for(let hCounter =0;hCounter<10;hCounter++){
             games.push(new snakeGame(hCounter*width/10,50+(yCounter*width/10)+(width*2/7)))
             NNs.push(new neuralNetwork())
-            games[hCounter+(yCounter*10)].start()
         }
     }
 }
-function followBestClick(){box=amount}
-function draw() {
+function getMean(){
+    let temp = 0
+    for(let counter =0;counter<amount;counter++){temp+=games[counter].points}
+    return(temp/amount)
+}
+function setButton(){
+    let button = createButton("Follow best")
+    button.position(10, (width*2/7)+25)
+    button.mousePressed(function(){box=amount})
+}
+function makeScreen(){
+    let tempwidth = screen.width
+    if(screen.width<1366){tempwidth=1366}
+    createCanvas(tempwidth-30, (tempwidth*2/7) + (tempwidth*amount/100));
+    background(0)
     frameRate(20)
+    grapher = new graph()
+    netDisplay.create()
+}
+function drawScreen(){
     fill(color(0,0,0))
-    rect(0,0,30+2*Math.floor((width-40)*2/7),Math.floor((width)*2/7))
+    rect(0,0,30+Math.floor((width-40)*2/7),Math.floor((width)*2/7))
     rect(0,Math.floor((width)*2/7),width,height)
+}
+function runNetsAndCheckIfDead(){
     let check = true
     for(let counter = 0;counter<amount;counter++){
         if(games[counter].alive){
@@ -70,109 +50,124 @@ function draw() {
             games[counter].giveSnakeInput(NNs[counter].runNet(games[counter].getInputs()))
             games[counter].move()
         }
-        
     }
-    if(check==true){
-    grapher.show(games[best()].points)
-        let list = []
-        for(let counter = 0;counter<amount;counter++){
-            list.push(counter)
-        }
-        list = qsort(list)
-        for(let h = 0; h<(amount*3/4);h++){
-            NNs[list[Math.round(amount/4)+h]] = Object.assign(NNs[list[h%(amount/4)]])
-            let ranNum = (Math.random()*1000)
-            if(ranNum==0){
-                NNs[list[Math.round(amount/4)+h]].mutate()
-            }
-        }
-        for(let h = (amount-5); h<amount;h++){
-            NNs[list[h]] = Object.assign(new neuralNetwork())
-        }
-        for(let g = 0;g<amount;g++){
-          games[g].start()
+    return(check)
+}
+function makeList(limit){
+    let list = []
+    for(let counter = 0;counter<limit;counter++){list.push(counter)}
+    return(list)
+}
+function resetColour(){
+    for(let counter = 0; counter<amount;counter++){games[counter].colour = 255}
+}
+function makeNextGen(){
+    resetColour()
+    let list = qsort(games,makeList(amount))
+    for(let counter =0;counter<(amount/6)-10;counter++){
+        NNs[list[Math.round(counter+(amount*5/6))]]=copyNet(breed(copyNet(NNs[list[counter]]),copyNet(NNs[list[Math.round(Math.random()*amount/8)]])))
+        games[list[Math.round(counter+(amount*5/6))]].colour = 0
+        let mutate = Math.round(Math.random()*50)
+        if(mutate ==5){NNs[list[Math.round(counter+(amount*5/6))]].mutate()}
+    }
+    for(let counter = (amount-5); counter<amount;counter++){NNs[list[counter]] = copyNet(NNs[list[0]])}
+}
+function copyNet(net){
+    let newNet = new neuralNetwork()
+    for(let layerCounter =0;layerCounter< 4;layerCounter++){
+        for(let nodeCounter = 0;nodeCounter<newNet.layers[layerCounter].length;nodeCounter++){
+            for(let weightCounter = 0;weightCounter<3;weightCounter++){newNet.layers[layerCounter][nodeCounter].weights[0]=net.layers[layerCounter][nodeCounter].weights[weightCounter].slice()}
         }
     }
-    if(box==amount){
-        let bestNet =best()
-        games[bestNet].show(0)
-        showNet(bestNet)
-    }else{
-        games[box].show(0)
-        showNet(box)
+    return(net)
+}
+function draw(){
+    drawScreen()
+    if(runNetsAndCheckIfDead()){
+        grapher.show((games[(best())]).points,getMean())
+        makeNextGen()
+        startSnakes()
     }
-    for(let gg = 0;gg<amount;gg++){
-            games[gg].show(1)
+    showSnakes()
+}
+function startSnakes(){
+    for(let counter = 0;counter<amount;counter++){
+        games[counter].start()
+    }
+}
+function showSnakes(){
+    let tempBox = box
+    if(tempBox==amount){tempBox = best()}
+    games[tempBox].show(0)
+    netDisplay.showNet(NNs[tempBox])
+    fill(color(0,0,0))
+    text(games[tempBox].points,12,22)
+    for(let counter = 0;counter<amount;counter++){
+            games[counter].show(1)
     }
 }
 function best(){
     let returnBest =0
-    for(let i =1;i<amount;i++){
-        if(games[returnBest].points < games[i].points){
-            returnBest=i
+    for(let counter =1;counter<amount;counter++){
+        if(games[returnBest].points < games[counter].points){
+            returnBest=counter
         }
     }
     return(returnBest)
 }
 function breed(mum,dad){
-    let temp = new neuralNetwork()
-    for(let i =0;i<3;i++){
-        for(let k = 0;k<dad.layers[i].length;k++){
-            temp.layers[i][k].weights[0] = Object.assign(mum.layers[i][k].weights[0].map(function (num, idx) {
-                return Math.tanh(num + dad.layers[i][k].weights[0][idx]);
-              }))
-              temp.layers[i][k].weights[1] = Object.assign(mum.layers[i][k].weights[1].map(function (num, idx) {
-                return Math.tanh(num + dad.layers[i][k].weights[1][idx]);
-            }))
+    mum.rateNet()
+    dad.rateNet()
+    let newNet = new neuralNetwork()
+    for(let layerCounter =0;layerCounter<4;layerCounter++){
+        for(let nodeCounter =0;nodeCounter<newNet.layers[layerCounter].length;nodeCounter++){
+            for(let weightCounter =0;weightCounter<newNet.layers[layerCounter][nodeCounter].weights[0].length;weightCounter++){
+                for(let typeCounter = 0;typeCounter<3;typeCounter++){newNet.layers[layerCounter][nodeCounter].weights[typeCounter][weightCounter]=(Math.random()-0.5)*Math.round(Math.random())}
+            }
         }
     }
-    return(temp)
+    newNet = copyNet(passGenetics(copyNet(passGenetics(newNet,dad,6)),mum,13))
+    return(newNet)
+}
+function passGenetics(newNet,parent,num){
+    let tempList = makeList(newNet.layers[2].length)
+    let bestLayer2 = qsort(parent.layers[1],tempList)
+    let bestLayer3 = qsort(parent.layers[2],tempList)
+    for(let i =0;i<parent.layers[0].length;i++){
+        for(let k =parent.layers[1].length/2;k<parent.layers[1].length;k++){
+            for(let h = 0; h<3;h++){newNet.layers[0][i].weights[h][k%num]=parent.layers[0][i].weights[h][bestLayer2[k%6]]}
+        }
+    }
+    for(let i =parent.layers[1].length/2;i<parent.layers[1].length;i++){
+        for(let k =parent.layers[1].length/2;k<parent.layers[2].length;k++){
+            for(let h = 0; h<3;h++){newNet.layers[1][i%num].weights[h][k%num]=parent.layers[1][bestLayer2[i%6]].weights[h][bestLayer3[k%6]]}
+        }
+    }
+    for(let i =parent.layers[1].length/2;i<parent.layers[1].length;i++){
+        for(let k =0;k<parent.layers[3].length;k++){
+            for(let h = 0; h<3;h++){newNet.layers[2][i%num].weights[h][k]=parent.layers[2][bestLayer3[i%6]].weights[h][k]}
+        }
+    }
+    return(newNet)
 }
 function mouseClicked(){
     let tempbox = Math.floor((mouseX-10)*10/width)+10*Math.floor((mouseY-(width*2/7)-60)*10/width)
-    if(tempbox>=0 && tempbox<=amount){
-        window.scrollTo(0, 0)
-        box = tempbox
-    }
+    if(tempbox>=0 && tempbox<=amount){window.scrollTo(0, 0);box = tempbox}
 }
-function showNet(net){
-    fill(color(522,522,522))
-    rect(20+Math.floor((width-40)*2/7),10,Math.floor((width-40)*2/7),Math.floor((width-40)*2/7))
-    for(let i = 0;i<4;i++){
-        for(let k = 0;k<NNs[net].layers[i].length;k++){
-            if(i!=3){
-                for(let h =0; h<NNs[net].layers[i][k].weights[0].length;h++){
-                   line((20+Math.floor((width-40)*2/7))+((i+1)*(Math.floor((width-40)*2/7)/5)),(10+((k+1)*Math.floor((width-40)*2/7)/(NNs[net].layers[i].length+1))),(20+Math.floor((width-40)*2/7))+((i+2)*(Math.floor((width-40)*2/7)/5)),(10+((h+1)*Math.floor((width-40)*2/7)/(NNs[net].layers[i+1].length+1))))
-               }
-            }
-            fill(color((522*(NNs[net].layers[i][k].input)),0,(522*-(NNs[net].layers[i][k].input))))
-            ellipse(20+Math.floor((width-40)*2/7)+((i+1)*(Math.floor((width-40)*2/7)/5)),(10+((k+1)*Math.floor((width-40)*2/7)/(NNs[net].layers[i].length+1))),15)
-        }
-    }
-    fill(color(0,0,0))
-    text("Front",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*2/7)/5)))
-    text("Left",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*4/7)/5)))
-    text("Right",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*6/7)/5)))
-    text("Angle",Math.floor((width-40)*2/7)+((Math.floor((width-40)*2/7)/5))-30,(10+(Math.floor((width-40)*8/7)/5)))
-    text("Forward",40+Math.floor((width-40)*2/7)+(4*(Math.floor((width-40)*2/7)/5)),(10+(Math.floor((width-40)*2/7)/4)))
-    text("Right",40+Math.floor((width-40)*2/7)+(4*(Math.floor((width-40)*2/7)/5)),(10+(Math.floor((width-40)*4/7)/4)))
-    text("Left",40+Math.floor((width-40)*2/7)+(4*(Math.floor((width-40)*2/7)/5)),(10+(Math.floor((width-40)*6/7)/4)))
-}
-
-function qsort(list){
+function qsort(items,list){
     if(list.length == 0){
-      return([])
+     return([])
     }
     let smaller = []
     let bigger = []
     let pivot = list[0]
-    for(let ii = 1; ii <list.length-1;ii++){
-      if(games[pivot].points < games[list[ii]].points){
+    for(let ii = 1; ii <list.length;ii++){
+      if(items[pivot].points < items[list[ii]].points){
         bigger.push(list[ii])
       }else{
-        smaller.push(list[ii])
+       smaller.push(list[ii])
       }
     }
-    return(((qsort(bigger)).concat(pivot)).concat(qsort(smaller)))
+    return(((qsort(items,bigger)).concat(pivot)).concat(qsort(items,smaller)))
   }
-  
+
