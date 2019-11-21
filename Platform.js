@@ -59,14 +59,14 @@ function makeList(limit){
     return(list)
 }
 function resetColour(){
-    for(let counter = 0; counter<amount;counter++){games[counter].colour = 255}
+    for(let counter = 0; counter<amount;counter++){games[counter].colour = 0}
 }
 function makeNextGen(){
     resetColour()
     let list = qsort(games,makeList(amount))
     for(let counter =0;counter<(amount/6)-10;counter++){
         NNs[list[Math.round(counter+(amount*5/6))]]=copyNet(breed(copyNet(NNs[list[counter]]),copyNet(NNs[list[Math.round(Math.random()*amount/8)]])))
-        games[list[Math.round(counter+(amount*5/6))]].colour = 0
+        games[list[Math.round(counter+(amount*5/6))]].colour = 522
         let mutate = Math.round(Math.random()*50)
         if(mutate ==5){NNs[list[Math.round(counter+(amount*5/6))]].mutate()}
     }
@@ -170,4 +170,3 @@ function qsort(items,list){
     }
     return(((qsort(items,bigger)).concat(pivot)).concat(qsort(items,smaller)))
   }
-
