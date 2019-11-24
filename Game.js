@@ -65,6 +65,7 @@ class snakeGame{
             fill(color(255,0,0))
         }
         push()
+        strokeWeight(3)
         stroke(color(this.colour,this.colour,0))
         rect(10+(this.windowPosition.x*best),10+(this.windowPosition.y*best),tempscale*38,tempscale*38)
         pop()
