@@ -43,12 +43,19 @@ class snakeGame{
         this.alive = true
         this.position = [[20],[20]]
         this.points =1
-                this.point =new createVector(10,10)
+        this.point =new createVector(10,10)
         this.randomPoint()
     }
     randomPoint(){
-        this.point.x=Math.round(Math.random()*37)+1
-        this.point.y=Math.round(Math.random()*37)+1
+        let temp = true
+        while(temp){
+            temp=false
+            this.point.x=Math.round(Math.random()*37)+1
+            this.point.y=Math.round(Math.random()*37)+1
+            if(this.checkForDeath(this.point.x,this.point.y)){
+                temp = true
+            }
+        }
     }
     show(best){
         let tempscale = this.scale
