@@ -64,7 +64,7 @@ function resetColour(){
 function makeNextGen(){
     resetColour()
     let list = qsort(games,makeList(amount))
-    NNs[amount-1]=new neuralNetwork()
+    NNs[list[amount-1]]=new neuralNetwork()
     for(let counter =0;counter<(amount/6)-1;counter++){
         NNs[list[Math.round(counter+(amount*5/6))]]=copyNet(breed(copyNet(NNs[list[counter]]),copyNet(NNs[list[Math.round(Math.random()*amount/8)]])))
         games[list[Math.round(counter+(amount*5/6))]].colour = 522
