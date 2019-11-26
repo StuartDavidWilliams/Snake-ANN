@@ -1,37 +1,72 @@
+class segment extends p5.Vector{
+    constructor(x,y,windowPosition){
+        super(x,y)
+        this.next
+        this.windowPosition = windowPosition
+    }
+    show(hue,gradient,best,colour){
+        if(typeof this.next =="object"){
+            this.next.show(hue+gradient,gradient,best,colour)
+        }
+        let scale = Math.floor(Math.floor(width/10)/38)
+        if(best==0){scale=Math.floor((width-40)*2/7)/38}
+        fill(color(colour,255,0,Math.round(gradient+hue)))
+        rect(10+(best*this.windowPosition.x)+(scale*(this.x-1)),10+(best*this.windowPosition.y)+(scale*(this.y-1)),scale,scale)
+    }
+    checkForDeath(x,y){
+        if((x % 39)==0 || (y % 39)==0){
+            return(true)
+        }
+        if(typeof this.next =="object"){
+            if(this.x==x && this.y==y){return true}
+            return(this.next.checkForDeath(x,y))
+        }
+        return(false)
+    }
+}
+class snake{
+    constructor(windowPosition){
+        this.tail = new segment(20,20,windowPosition)
+        this.head = this.tail
+        this.movement = new createVector(0,1)
+    }
+    show(best,colour,points){this.tail.show(25,230/points,best,colour)}
+    checkForDeath(x,y){return(this.tail.checkForDeath(x,y))}
+    move(){
+        this.head.next = new segment(this.head.x+this.movement.x,this.head.y+this.movement.y,this.head.windowPosition)
+        this.head = this.head.next
+    }
+    shorten(){
+        this.tail = this.tail.next
+    }
+}
 class snakeGame{
     constructor(x,y){
-        this.movement
         this.time=100
-        this.colour = 0
-        this.scale = Math.floor(Math.floor(width/10)/39)
         this.alive
-        this.position
         this.windowPosition = new createVector(x,y)
+        this.snake
+        this.colour = 0
         this.points
         this.point
     }
     getInputs(){
-        let returnList = []
-        for(let i = 0; i < 3;i++){
-            returnList.push(0)
+        let returnList = [0,0,0]
+        for(let counter = 0; counter<3;counter++){
+            let selfDir = Math.round(Math.pow(Math.E,-counter))
+            let other = Math.round(Math.sin(2*counter))
+            if(this.snake.checkForDeath(this.snake.head.x+(selfDir*this.snake.movement.x)+(other*this.snake.movement.y),this.snake.head.y+(selfDir*this.snake.movement.y)-(other*this.snake.movement.x))){
+                returnList[counter]=1
+            }
         }
-        if(this.checkForDeath(this.position[0][this.position[0].length-1]+this.movement.x, this.position[1][this.position[1].length-1]+this.movement.y)){
-            returnList[0]=1
-        }
-        if(this.checkForDeath(this.position[0][this.position[0].length-1]+this.movement.y, this.position[1][this.position[1].length-1]-this.movement.x)){
-            returnList[1]=1
-        }
-        if(this.checkForDeath(this.position[0][this.position[0].length-1]-this.movement.y, this.position[1][this.position[1].length-1]+this.movement.x)){
-            returnList[2]=1
-        }
-        let vector = new createVector(this.point.x - this.position[0][this.position[0].length -1],this.point.y - this.position[1][this.position[1].length -1])
-        returnList.push(Math.acos(((vector.x * this.movement.x) + (vector.y * this.movement.y)) / Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2))) /Math.PI)
-        if(this.movement.x != 0){
-            if((vector.y * this.movement.x) > 0){
+        let vector = new createVector(this.point.x - this.snake.head.x,this.point.y - this.snake.head.y)
+        returnList.push(Math.acos(((vector.x * this.snake.movement.x) + (vector.y * this.snake.movement.y)) / Math.sqrt(Math.pow(vector.x,2) + Math.pow(vector.y,2))) /Math.PI)
+        if(this.snake.movement.x != 0){
+            if((vector.y * this.snake.movement.x) > 0){
                 returnList[3] = -returnList[3]
             }
         } else {
-            if((vector.x * -this.movement.y) > 0){
+            if((vector.x * -this.snake.movement.y) > 0){
                 returnList[3] = -returnList[3]
             }
         }
@@ -39,11 +74,10 @@ class snakeGame{
     }
     start(){
         this.time =100
-        this.movement= new createVector(1,0)
         this.alive = true
-        this.position = [[20],[20]]
         this.points =1
         this.point =new createVector(10,10)
+        this.snake = new snake(this.windowPosition)
         this.randomPoint()
     }
     randomPoint(){
@@ -52,14 +86,14 @@ class snakeGame{
             temp=false
             this.point.x=Math.round(Math.random()*37)+1
             this.point.y=Math.round(Math.random()*37)+1
-            if(this.checkForDeath(this.point.x,this.point.y)){
+            if(this.snake.checkForDeath(this.point.x,this.point.y)){
                 temp = true
             }
         }
     }
     show(best){
-        let tempscale = this.scale
-        if(best==0){tempscale=Math.floor((width-40)*2/7)/38}
+        let scale = Math.floor(Math.floor(width/10)/38)
+        if(best==0){scale=Math.floor((width-40)*2/7)/38}
         fill(color(255,255,255))
         if(this.alive==false){
             fill(color(255,0,0))
@@ -67,50 +101,38 @@ class snakeGame{
         push()
         strokeWeight(3)
         stroke(color(this.colour,this.colour,0))
-        rect(10+(this.windowPosition.x*best),10+(this.windowPosition.y*best),tempscale*38,tempscale*38)
+        rect(10+(this.windowPosition.x*best),10+(this.windowPosition.y*best),scale*38,scale*38)
         pop()
-        for(let ii = 0; ii < this.position[0].length;ii++){
-            fill(color(this.colour,255,0,(255*(ii+2)/this.position[0].length+1)))
-            rect(10+(this.windowPosition.x*best)+(tempscale*(this.position[0][ii]-1)),10+(this.windowPosition.y*best)+(tempscale*(this.position[1][ii]-1)),tempscale,tempscale)
-        }
+        this.snake.show(best,this.colour,this.points)
         fill(color(255,0,0))
-        rect(10+(this.windowPosition.x*best)+((this.point.x-1)*tempscale),10+(this.windowPosition.y*best)+((this.point.y-1)*tempscale),tempscale,tempscale)
+        rect(10+(this.windowPosition.x*best)+((this.point.x-1)*scale),10+(this.windowPosition.y*best)+((this.point.y-1)*scale),scale,scale)
     }
     move(){
         this.time-=1
-        this.position[0].push(this.position[0][this.position[0].length-1]+this.movement.x)
-        this.position[1].push(this.position[1][this.position[1].length-1]+this.movement.y)
-        if(this.checkForDeath(this.position[0][this.position[0].length-1], this.position[1][this.position[1].length-1])){
+        this.snake.move()
+        if(this.snake.checkForDeath(this.snake.head.x,this.snake.head.y) || this.time==0){
             this.alive=false
         }
-        if(this.position[0][this.position[0].length-1]==this.point.x && this.position[1][this.position[1].length-1]==this.point.y){
-            this.points +=1
+        if(this.snake.head.x == this.point.x && this.snake.head.y == this.point.y){
+            this.points ++
             this.time=100
             this.randomPoint()
         }else{
-            this.position[0].shift()
-            this.position[1].shift()
+            this.snake.shorten()
         }
-    }
-    checkForDeath(x,y){
-        if((x%39) == 0 || (y%39) == 0 || this.time==0){return(true)}
-        for(let i = 0; i < this.position[0].length - 2; i++){
-            if(x == this.position[0][i] && y == this.position[1][i]){return(true)}
-        }
-        return(false)
     }
     giveSnakeInput(dirInput){
       let temp
         switch(dirInput){
             case 1:
-                temp = this.movement.x
-                this.movement.x= this.movement.y
-                this.movement.y = -temp
+                temp = this.snake.movement.x
+                this.snake.movement.x= this.snake.movement.y
+                this.snake.movement.y = -temp
                 break;
             case 2:
-                temp = this.movement.x
-                this.movement.x= -this.movement.y
-                this.movement.y = temp
+                temp = this.snake.movement.x
+                this.snake.movement.x= -this.snake.movement.y
+                this.snake.movement.y = temp
                 break;
         }
     }
