@@ -50,7 +50,7 @@ function runNetsAndCheckIfDead(){
             test = NNs[counter].runNet(games[counter].getInputs())
             games[counter].giveSnakeInput(test)
             if(test !=0){
-                games[counter].points-=0.1
+                games[counter].points-=1
             }
             games[counter].move()
         }
