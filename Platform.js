@@ -47,7 +47,11 @@ function runNetsAndCheckIfDead(){
     for(let counter = 0;counter<amount;counter++){
         if(games[counter].alive){
             check = false
-            games[counter].giveSnakeInput(NNs[counter].runNet(games[counter].getInputs()))
+            test = NNs[counter].runNet(games[counter].getInputs())
+            games[counter].giveSnakeInput(test)
+            if(test !=0){
+                games[counter].points-=0.1
+            }
             games[counter].move()
         }
     }
