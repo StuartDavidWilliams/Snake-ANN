@@ -114,7 +114,7 @@ class snakeGame{
             this.alive=false
         }
         if(this.snake.head.x == this.point.x && this.snake.head.y == this.point.y){
-            this.points ++
+            this.points += 10
             this.time=100
             this.randomPoint()
         }else{
